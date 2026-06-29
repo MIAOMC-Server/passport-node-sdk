@@ -1,7 +1,7 @@
 # MIAOMC Passport Node SDK
 
 [![npm version](https://img.shields.io/npm/v/@miaomc/passport-node-sdk)](https://www.npmjs.com/package/@miaomc/passport-node-sdk)
-[![license](https://img.shields.io/npm/l/@miaomc/passport-node-sdk)](./LICENSE)
+[license](https://img.shields.io/npm/l/@miaomc/passport-node-sdk)
 
 用于 Node.js 的 MIAOMC Passport SDK，提供了与 MIAOMC Passport API 交互的功能，包括请求签名、鉴权和 API 调用。
 
