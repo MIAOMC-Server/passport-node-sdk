@@ -255,10 +255,6 @@ console.log(result.data.email)
 
 ```mermaid
 sequenceDiagram
-    participant App as 你的应用
-    participant SDK as Passport SDK
-    participant Passport as MIAOMC Passport
-
     App->>SDK: generateTicket(redirectUrl)
     SDK->>Passport: POST /app/ticket/generate
     Passport-->>SDK: { ticket, redirect_to }
@@ -282,6 +278,10 @@ sequenceDiagram
     Passport-->>SDK: { email }
     SDK-->>App: 返回真实邮箱
 ```
+
+您需要主动管理 Passport 签发的 Introspect Token，请勿每次都发起 Ticket 生成请求，否则可能被限流拒绝。
+
+当 Introspect Token 需要轮换时会在 `redeemIntrospect` 的返回中提示 `need_rotate: true`，请调用 `rotateIntrospect` 获取新的 Token 后替换旧的 Token。
 
 ## 类型导出
 
