@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "module": "esnext",
+        "moduleResolution": "bundler",
+        "rootDir": ".",
+        "outDir": "./dist",
+
+        "ignoreDeprecations": "6.0",
+
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+
+        "noImplicitAny": true,
+        "lib": ["esnext"],
+        "declaration": true,
+        "types": ["node"],
+
+        "forceConsistentCasingInFileNames": true,
+        "esModuleInterop": true,
+        "resolveJsonModule": true
+    },
+    "exclude": ["node_modules", "dist", "build"]
+}
