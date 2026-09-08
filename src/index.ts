@@ -24,7 +24,7 @@ export class MIAOMCPassport {
         const standardizedConfig: MIAOMCPassportConfig = {
             appId: config.appId,
             appSecret: config.appSecret,
-            baseUrl: config.baseUrl || 'https://passport.miaomc.com/api/v1',
+            baseUrl: config.baseUrl || 'https://passport.miaomc.cn/api/v1',
             advancedConfig: {
                 authorizationHeader: {
                     appIdHeader: config.advancedConfig?.authorizationHeader?.appIdHeader || 'x-miaomc-app-id',

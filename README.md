@@ -55,7 +55,7 @@ const passport = new MIAOMCPassport(config)
 | ---------------- | -------- | ---- | ------------------------------------------------------- |
 | `appId`          | `string` | ✅   | 应用 ID                                                 |
 | `appSecret`      | `string` | ✅   | 应用密钥                                                |
-| `baseUrl`        | `string` | ❌   | API 基础地址，默认 `https://passport.miaomc.com/api/v1` |
+| `baseUrl`        | `string` | ❌   | API 基础地址，默认 `https://passport.miaomc.cn/api/v1` |
 | `advancedConfig` | `object` | ❌   | 高级配置，可自定义请求头名称                            |
 
 <details>
