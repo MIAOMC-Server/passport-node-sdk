@@ -286,8 +286,6 @@ sequenceDiagram
     SDK-->>App: 返回真实邮箱
 ```
 
-> 除 `app/pairwise/resolve-email` 使用 GET 外，其余请求均携带 `x-miaomc-app-id` / `x-miaomc-app-nonce` / `x-miaomc-signature` / `x-miaomc-signature-expired-at` HMAC 签名头（introspect 相关请求额外携带 `x-miaomc-introspect`），SDK 已自动处理，接入方无需关心。
-
 您需要主动管理 Passport 签发的 Introspect Token，请勿每次都发起 Ticket 生成请求，否则可能被限流拒绝。
 
 ## Token 缓存纪律
@@ -295,7 +293,7 @@ sequenceDiagram
 - **Introspect Token 可以缓存**：它每次使用都会回到 Passport 服务端校验，服务端吊销后立即失效，App 端缓存 Token 本身是安全的。
 - **请勿长期缓存 introspect 返回的身份数据**：缓存时长不应超过 Introspect Token 的有效期（TTL），建议每次授权前重新调用 `redeemIntrospect` 校验，避免身份变更后仍信任陈旧数据。
 - **需要轮换时**：`redeemIntrospect` 返回 `need_rotate: true` 时，请调用 `rotateIntrospect` 获取新 Token 后替换旧 Token。
-- **用户登出所有设备（`logout { all: true }`）会吊销对应 Introspect Token**：随后 `redeemIntrospect` 将失败，接入方应清除本地会话并引导用户重新登录。
+- **在 Passport 侧登出所有设备后，会吊销对应的 Introspect Token**：随后 `redeemIntrospect` 将失败，接入方应清除本地会话并引导用户重新登录。
 
 ## 服务端版本兼容性
 
