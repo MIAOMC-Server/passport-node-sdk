@@ -255,18 +255,25 @@ console.log(result.data.email)
 
 ```mermaid
 sequenceDiagram
-    App->>SDK: generateTicket(redirectUrl)
-    SDK->>Passport: POST /app/ticket/generate
-    Passport-->>SDK: { ticket, redirect_to }
-    SDK-->>App: 返回授权页地址
+    participant App as 接入方应用
+    participant SDK as passport-node-sdk
+    participant Passport as Passport Server
+    participant Browser as 用户浏览器
 
-    App->>Passport: 重定向用户到 redirect_to
-    Passport->>App: 回调 redirectUrl?ticket=xxx
+    App->>SDK: generateTicket(redirectUrl)
+    SDK->>Passport: POST /app/ticket/generate (HMAC 签名)
+    Passport-->>SDK: { ticket, redirect_to }
+    SDK-->>App: 返回授权页地址 redirect_to
+
+    App-->>Browser: 302 / 前端跳转到授权页
+    Browser->>Passport: 打开 redirect_to（选身份 / 授权）
+    Passport-->>Browser: 302 到 redirectUrl?passport-ticket=xxx
+    Browser->>App: 回调携带 passport-ticket
 
     App->>SDK: redeemTicket(ticket)
-    SDK->>Passport: POST /app/ticket/redeem
-    Passport-->>SDK: { ticket_data }
-    SDK-->>App: 返回用户信息 + introspect_token
+    SDK->>Passport: POST /app/ticket/redeem (HMAC 签名)
+    Passport-->>SDK: { ticket_data }（含 introspect_token）
+    SDK-->>App: 返回 ticket_data
 
     App->>SDK: redeemIntrospect(introspectToken)
     SDK->>Passport: GET /app/introspect/redeem
@@ -279,9 +286,27 @@ sequenceDiagram
     SDK-->>App: 返回真实邮箱
 ```
 
+> 除 `app/pairwise/resolve-email` 使用 GET 外，其余请求均携带 `x-miaomc-app-id` / `x-miaomc-app-nonce` / `x-miaomc-signature` / `x-miaomc-signature-expired-at` HMAC 签名头（introspect 相关请求额外携带 `x-miaomc-introspect`），SDK 已自动处理，接入方无需关心。
+
 您需要主动管理 Passport 签发的 Introspect Token，请勿每次都发起 Ticket 生成请求，否则可能被限流拒绝。
 
-当 Introspect Token 需要轮换时会在 `redeemIntrospect` 的返回中提示 `need_rotate: true`，请调用 `rotateIntrospect` 获取新的 Token 后替换旧的 Token。
+## Token 缓存纪律
+
+- **Introspect Token 可以缓存**：它每次使用都会回到 Passport 服务端校验，服务端吊销后立即失效，App 端缓存 Token 本身是安全的。
+- **请勿长期缓存 introspect 返回的身份数据**：缓存时长不应超过 Introspect Token 的有效期（TTL），建议每次授权前重新调用 `redeemIntrospect` 校验，避免身份变更后仍信任陈旧数据。
+- **需要轮换时**：`redeemIntrospect` 返回 `need_rotate: true` 时，请调用 `rotateIntrospect` 获取新 Token 后替换旧 Token。
+- **用户登出所有设备（`logout { all: true }`）会吊销对应 Introspect Token**：随后 `redeemIntrospect` 将失败，接入方应清除本地会话并引导用户重新登录。
+
+## 服务端版本兼容性
+
+| passport-server 版本 | 兼容性 | 说明 |
+| -------------------- | ------ | ---- |
+| v1.0.1 | ✅ | 基础协议（Ticket / Introspect / Pairwise） |
+| v1.0.2 | ✅ | 基础协议 |
+| v1.0.3 | ✅ | `ticket/generate` 新增 callback_urls 回调白名单校验，**SDK 协议不变，无需升级** |
+
+> **v1.0.3 起**，`app/ticket/generate` 会校验 `redirect_url` 是否命中应用注册的**回调白名单（callback_urls）**，且应用必须至少注册一条回调地址；未命中将返回 400。
+> 请到 [MIAOMC Passport 开放平台](https://passport.miaomc.cn/dashboard/open-platform) 的应用配置中添加回调白名单（填入 `generateTicket` 传入的 `redirectUrl`）。v1.0.3 之前创建的老应用可能未配置过白名单，升级后需要补注册。
 
 ## 类型导出
 
